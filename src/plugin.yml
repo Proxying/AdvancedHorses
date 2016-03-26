@@ -1,0 +1,6 @@
+name: AdvancedHorses
+main: com.cherryio.AdvancedHorses
+version: 1.0
+authors: [CherryIO Development Team]
+prefix: AdvancedHorses
+description: Advanced Horses Plugin.
