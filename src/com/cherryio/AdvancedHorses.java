@@ -1,6 +1,9 @@
 package com.cherryio;
 
+import com.cherryio.entities.AdvancedHorse;
 import com.cherryio.listeners.AdvancedHorsesListener;
+import com.cherryio.utils.NMSUtils;
+import net.minecraft.server.v1_9_R1.EntityHorse;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -25,6 +28,8 @@ public class AdvancedHorses extends JavaPlugin {
     public void onLoad() {
         instance = this;
         logger = this.getLogger();
+        NMSUtils nmsUtils = new NMSUtils();
+        nmsUtils.registerEntity("AdvancedHorse", 100, EntityHorse.class, AdvancedHorse.class);
     }
 
     public void onEnable() {

@@ -1,12 +1,13 @@
 package com.cherryio.listeners;
 
-import com.cherryio.AdvancedHorses;
+import com.cherryio.entities.AdvancedHorse;
 import com.cherryio.utils.Config;
-import net.minecraft.server.v1_9_R1.EntityLiving;
+import net.minecraft.server.v1_9_R1.EnumHorseType;
 import net.minecraft.server.v1_9_R1.GenericAttributes;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.craftbukkit.v1_9_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_9_R1.entity.CraftLivingEntity;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -22,7 +23,6 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.metadata.FixedMetadataValue;
 
 import java.util.List;
 import java.util.Random;
@@ -48,23 +48,28 @@ public class AdvancedHorsesListener implements Listener {
         Horse horse = (Horse) event.getEntity();
         event.setDamage(0);
         event.setCancelled(true);
-        EntityLiving nmsHorse = ((CraftLivingEntity) horse).getHandle();
-        if (horse.hasMetadata("genderVal")) {
-            player.sendMessage(ChatColor.YELLOW + "Gender" + ChatColor.GRAY + ": " + ChatColor.AQUA + horse.getMetadata("genderVal").get(0).asString());
+        AdvancedHorse advancedHorse1 = (AdvancedHorse) ((CraftLivingEntity) horse).getHandle();
+        if (horse.getCustomName() == null || horse.getCustomName().isEmpty()) {
+            player.sendMessage(ChatColor.YELLOW + "Name" + ChatColor.GRAY + ": " + ChatColor.AQUA + "None");
         } else {
-            player.sendMessage(ChatColor.YELLOW + "Gender" + ChatColor.GRAY + ": " + ChatColor.AQUA + "N/A");
+            player.sendMessage(ChatColor.YELLOW + "Name" + ChatColor.GRAY + ": " + ChatColor.AQUA + horse.getCustomName());
         }
-        if (horse.hasMetadata("neutered")) {
-            player.sendMessage(ChatColor.YELLOW + "Neutered" + ChatColor.GRAY + ": " + ChatColor.AQUA + "Yes");
+        if (advancedHorse1.getHorseGender() == 1) {
+            player.sendMessage(ChatColor.YELLOW + "Gender" + ChatColor.GRAY + ": " + ChatColor.AQUA + "Male");
         } else {
-            player.sendMessage(ChatColor.YELLOW + "Neutered" + ChatColor.GRAY + ": " + ChatColor.AQUA + "No");
+            player.sendMessage(ChatColor.YELLOW + "Gender" + ChatColor.GRAY + ": " + ChatColor.AQUA + "Female");
+        }
+        if (advancedHorse1.isNeutered()) {
+            player.sendMessage(ChatColor.YELLOW + "Neutered" + ChatColor.GRAY + ": " + ChatColor.AQUA + "True");
+        } else {
+            player.sendMessage(ChatColor.YELLOW + "Neutered" + ChatColor.GRAY + ": " + ChatColor.AQUA + "False");
         }
         double jump = horse.getJumpStrength();
         double blockJumpHeight = -0.1817584952 * Math.pow(jump, 3) + 3.689713992 * Math.pow(jump, 2) + 2.128599134 * jump - 0.343930367;
         blockJumpHeight = (blockJumpHeight*100);
         blockJumpHeight = Math.round(blockJumpHeight);
         blockJumpHeight /= 100;
-        double speed = nmsHorse.getAttributeInstance(GenericAttributes.MOVEMENT_SPEED).getValue();
+        double speed = advancedHorse1.getAttributeInstance(GenericAttributes.MOVEMENT_SPEED).getValue();
         double blockPerSecondSpeed = 4.3 * speed * 10;
         blockPerSecondSpeed = (blockPerSecondSpeed*100);
         blockPerSecondSpeed = Math.round(blockPerSecondSpeed);
@@ -77,22 +82,25 @@ public class AdvancedHorsesListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void horseDeath(EntityDeathEvent event) {
         if (event.getEntity().getType() != EntityType.HORSE) return;
-        Horse deadHorse = (Horse) event.getEntity();
+        final Horse deadHorse = (Horse) event.getEntity();
         if (deadHorse.getVariant() == Horse.Variant.UNDEAD_HORSE || deadHorse.getVariant() == Horse.Variant.SKELETON_HORSE) return;
         if (new Config<Boolean>("settings.undeadHorseAfterDeath").getValue()) {
             if (new Random().nextInt(99) < new Config<Integer>("settings.undeadHorseAfterDeathChance").getValue()) {
-                final Location location = event.getEntity().getLocation();
-                Horse horse = (Horse) event.getEntity().getWorld().spawnEntity(location, EntityType.HORSE);
-                if (new Random().nextBoolean()) {
-                    horse.setVariant(Horse.Variant.UNDEAD_HORSE);
-                } else {
-                    horse.setVariant(Horse.Variant.SKELETON_HORSE);
-                }
+                int gender;
                 if (new Random().nextInt(99) < new Config<Integer>("settings.maleHorseOnBirthChance").getValue()) {
-                    horse.setMetadata("genderVal", new FixedMetadataValue(AdvancedHorses.getInstance(), "Male"));
+                    gender = 1;
                 } else {
-                    horse.setMetadata("genderVal", new FixedMetadataValue(AdvancedHorses.getInstance(), "Female"));
+                    gender = 0;
                 }
+                AdvancedHorse advancedHorse = new AdvancedHorse(((CraftWorld) event.getEntity().getWorld()).getHandle(), gender, false);
+                advancedHorse.setLocation(deadHorse.getLocation().getX(), deadHorse.getLocation().getY(), deadHorse.getLocation().getZ(), 0 ,0);
+                if (new Random().nextBoolean()) {
+                    advancedHorse.setType(EnumHorseType.SKELETON);
+                } else {
+                    advancedHorse.setType(EnumHorseType.ZOMBIE);
+                }
+                ((CraftWorld) event.getEntity().getWorld()).getHandle().addEntity(advancedHorse, CreatureSpawnEvent.SpawnReason.CUSTOM);
+                advancedHorse.setLocation(deadHorse.getLocation().getX(), deadHorse.getLocation().getY(), deadHorse.getLocation().getZ(), 0 ,0);
             }
         }
     }
@@ -100,11 +108,21 @@ public class AdvancedHorsesListener implements Listener {
     @EventHandler(priority = EventPriority.NORMAL)
     public void horseSpawn(CreatureSpawnEvent event) {
         if (event.getEntity().getType() != EntityType.HORSE) return;
-        if (new Random().nextInt(99) < new Config<Integer>("settings.maleHorseOnBirthChance").getValue()) {
-            event.getEntity().setMetadata("genderVal", new FixedMetadataValue(AdvancedHorses.getInstance(), "Male"));
-        } else {
-            event.getEntity().setMetadata("genderVal", new FixedMetadataValue(AdvancedHorses.getInstance(), "Female"));
+        if (event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.CUSTOM) return;
+        final Entity horse = event.getEntity();
+        if (!event.getEntity().isDead()) {
+            event.getEntity().remove();
         }
+        int gender;
+        if (new Random().nextInt(99) < new Config<Integer>("settings.maleHorseOnBirthChance").getValue()) {
+            gender = 1;
+        } else {
+            gender = 0;
+        }
+        AdvancedHorse advancedHorse = new AdvancedHorse(((CraftWorld) event.getEntity().getWorld()).getHandle(), gender, false);
+        advancedHorse.setLocation(horse.getLocation().getX(), horse.getLocation().getY(), horse.getLocation().getZ(), 0 ,0);
+        ((CraftWorld) event.getEntity().getWorld()).getHandle().addEntity(advancedHorse, CreatureSpawnEvent.SpawnReason.CUSTOM);
+        advancedHorse.setLocation(horse.getLocation().getX(), horse.getLocation().getY(), horse.getLocation().getZ(), 0 ,0);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -135,19 +153,19 @@ public class AdvancedHorsesListener implements Listener {
             if (found2) break;
         }
         if (found && found2) {
-            if (parent1.hasMetadata("neutered") || parent2.hasMetadata("neutered")) {
+            AdvancedHorse advancedHorse1 = (AdvancedHorse) ((CraftLivingEntity) parent1).getHandle();
+            AdvancedHorse advancedHorse2 = (AdvancedHorse) ((CraftLivingEntity) parent2).getHandle();
+            if (advancedHorse1.isNeutered() || advancedHorse2.isNeutered() ) {
                 babyHorse.remove();
                 return;
             }
-            if (parent1.hasMetadata("genderVal") && parent2.hasMetadata("genderVal")) {
-                if (parent1.getMetadata("genderVal").get(0).asString().equalsIgnoreCase("male")) {
-                    if (parent2.getMetadata("genderVal").get(0).asString().equalsIgnoreCase("male")) {
-                        babyHorse.remove();
-                    }
-                } else if (parent1.getMetadata("genderVal").get(0).asString().equalsIgnoreCase("female")) {
-                    if (parent2.getMetadata("genderVal").get(0).asString().equalsIgnoreCase("female")) {
-                        babyHorse.remove();
-                    }
+            if (advancedHorse1.getHorseGender() == 1) {
+                if (advancedHorse1.getHorseGender() == 1) {
+                    babyHorse.remove();
+                }
+            } else if (advancedHorse1.getHorseGender() == 0) {
+                if (advancedHorse1.getHorseGender() == 0) {
+                    babyHorse.remove();
                 }
             }
         }
@@ -160,19 +178,18 @@ public class AdvancedHorsesListener implements Listener {
         Player player = (Player) event.getDamager();
         if (player.getItemInHand() == null || player.getItemInHand().getType() != Material.SHEARS) return;
         Horse horse = (Horse) event.getEntity();
+        AdvancedHorse advancedHorse1 = (AdvancedHorse) ((CraftLivingEntity) horse).getHandle();
         event.setDamage(0);
         event.setCancelled(true);
-        if (horse.hasMetadata("genderVal")) {
-            if (horse.getMetadata("genderVal").get(0).asString().equalsIgnoreCase("male")) {
-                if (!(horse.hasMetadata("neutered"))) {
-                    horse.setMetadata("neutered", new FixedMetadataValue(AdvancedHorses.getInstance(), "neutered"));
-                    player.sendMessage(ChatColor.GREEN + "You have successfully neutered the horse!");
-                } else {
-                    player.sendMessage(ChatColor.RED + "This horse has already been neutered.");
-                }
+        if (advancedHorse1.getHorseGender() == 1) {
+            if (!advancedHorse1.isNeutered()) {
+                advancedHorse1.setNeutered(true);
+                player.sendMessage(ChatColor.GREEN + "You have successfully neutered the horse!");
             } else {
-                player.sendMessage(ChatColor.RED + "You cannot neuter a Female horse.");
+                player.sendMessage(ChatColor.RED + "This horse has already been neutered.");
             }
+        } else {
+            player.sendMessage(ChatColor.RED + "You cannot neuter a Female horse.");
         }
     }
 
