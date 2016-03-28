@@ -1,5 +1,5 @@
 name: AdvancedHorses
-main: com.cherryio.AdvancedHorses
+main: com.cherryio.advancedHorses.AdvancedHorses
 version: 1.0
 authors: [CherryIO Development Team]
 prefix: AdvancedHorses
