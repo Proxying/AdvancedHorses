@@ -2,3 +2,4 @@ settings:
     undeadHorseAfterDeath: true
     undeadHorseAfterDeathChance: 25
     maleHorseOnBirthChance: 50
+    horseDeathNoFood: true
