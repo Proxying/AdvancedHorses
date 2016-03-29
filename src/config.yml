@@ -3,3 +3,5 @@ settings:
     undeadHorseAfterDeathChance: 25
     maleHorseOnBirthChance: 50
     horseDeathNoFood: true
+    hungerFromFood: 25
+    thirstFromWater: 25

@@ -18,6 +18,7 @@ public class AdvancedHorse extends EntityHorse {
     private int hydrationLevel;
     private int bO;
     private int bV;
+    private int domestication;
 
     public AdvancedHorse(World world, int horseGender, boolean isNeutered) {
         super(world);
@@ -33,6 +34,7 @@ public class AdvancedHorse extends EntityHorse {
         this.setHealth((float) this.getAttributeInstance(GenericAttributes.maxHealth).getValue());
         this.setHungerLevel(500);
         this.setHydrationLevel(500);
+        this.setDomestication(1);
     }
 
     public AdvancedHorse(World world) {
@@ -59,14 +61,21 @@ public class AdvancedHorse extends EntityHorse {
         return hungerLevel;
     }
 
+
+    public int getDomestication() {
+        return domestication;
+    }
+
     private void setHungerLevel(int hungerLevel) {
-        if (hungerLevel > 0 && hungerLevel < 501) {
-            this.hungerLevel = hungerLevel;
-        } else if (hungerLevel < 0) {
-            this.hungerLevel = 0;
-        } else if (hungerLevel > 500) {
+        if (hungerLevel > 500) {
             this.hungerLevel = 500;
+            return;
         }
+        if (hungerLevel < 0) {
+            this.hungerLevel = 0;
+            return;
+        }
+        this.hungerLevel = hungerLevel;
     }
 
     public int getHydrationLevel() {
@@ -74,13 +83,15 @@ public class AdvancedHorse extends EntityHorse {
     }
 
     private void setHydrationLevel(int hydrationLevel) {
-        if (hydrationLevel > 0 && hydrationLevel < 501) {
-            this.hydrationLevel = hydrationLevel;
-        } else if (hydrationLevel < 0) {
-            this.hydrationLevel = 0;
-        } else if (hydrationLevel > 500) {
+        if (hydrationLevel > 500) {
             this.hydrationLevel = 500;
+            return;
         }
+        if (hydrationLevel < 0) {
+            this.hydrationLevel = 0;
+            return;
+        }
+        this.hydrationLevel = hydrationLevel;
     }
 
     public double getHorseSpeed() {
@@ -97,6 +108,18 @@ public class AdvancedHorse extends EntityHorse {
 
     public void setJump(double avgParentJump) {
         this.getAttributeInstance(attributeJumpStrength).setValue(avgParentJump);
+    }
+
+    public void setDomestication(int domestication) {
+        if (domestication > 100) {
+            this.domestication = 100;
+            return;
+        }
+        if (domestication < 0) {
+            this.domestication = 0;
+            return;
+        }
+        this.domestication = domestication;
     }
 
     @Override
@@ -137,6 +160,14 @@ public class AdvancedHorse extends EntityHorse {
                             if (new Config<Boolean>("settings.horseDeathNoFood").getValue()) {
                                 this.die();
                             }
+                        }
+                    }
+                }
+                if (this.getDomestication() < 100) {
+                    if (this.isVehicle()) {
+                        if (this.random.nextInt(1000) == 0) {
+                            this.getBukkitEntity().setPassenger(null);
+                            this.setDomestication(this.getDomestication() + 2);
                         }
                     }
                 }
@@ -181,6 +212,11 @@ public class AdvancedHorse extends EntityHorse {
         nbttagcompound.setBoolean("Tame", this.isTamed());
         nbttagcompound.setBoolean("SkeletonTrap", this.dG());
         nbttagcompound.setInt("SkeletonTrapTime", this.bV);
+        nbttagcompound.setInt("GenderValue", this.getHorseGender());
+        nbttagcompound.setBoolean("NeuterValue", this.isNeutered());
+        nbttagcompound.setInt("HungerValue", this.getHungerLevel());
+        nbttagcompound.setInt("HydrationValue", this.getHydrationLevel());
+        nbttagcompound.setInt("DomesticationValue", this.getDomestication());
         if(this.getOwnerUUID() != null) {
             nbttagcompound.setString("OwnerUUID", this.getOwnerUUID().toString());
         }
@@ -225,6 +261,11 @@ public class AdvancedHorse extends EntityHorse {
         this.setTame(nbttagcompound.getBoolean("Tame"));
         this.x(nbttagcompound.getBoolean("SkeletonTrap"));
         this.bV = nbttagcompound.getInt("SkeletonTrapTime");
+        this.setHorseGender(nbttagcompound.getInt("GenderValue"));
+        this.setNeutered(nbttagcompound.getBoolean("NeuterValue"));
+        this.setHungerLevel(nbttagcompound.getInt("HungerValue"));
+        this.setHydrationLevel(nbttagcompound.getInt("HydrationValue"));
+        this.setDomestication(nbttagcompound.getInt("DomesticationValue"));
         String s;
         if(nbttagcompound.hasKeyOfType("OwnerUUID", 8)) {
             s = nbttagcompound.getString("OwnerUUID");
@@ -287,12 +328,12 @@ public class AdvancedHorse extends EntityHorse {
     }
 
     public void feedHorse() {
-        this.setHungerLevel(this.getHungerLevel() + 50);
+        this.setHungerLevel(this.getHungerLevel() + new Config<Integer>("settings.hungerFromFood").getValue());
     }
 
     public void waterHorse() {
         final int prevLevel = this.getHydrationLevel();
-        this.setHydrationLevel(this.getHydrationLevel() + 50);
+        this.setHydrationLevel(this.getHydrationLevel() + new Config<Integer>("settings.thirstFromWater").getValue());
         if (this.getHydrationLevel() > 50 && prevLevel <= 50) {
             this.setSpeed(this.getHorseSpeed() * 2);
             this.setJump(this.getJumpStrength() * 2);

@@ -47,7 +47,7 @@ public class AdvancedHorsesListener implements Listener {
         event.setDamage(0);
         event.setCancelled(true);
         AdvancedHorse advancedHorse1 = (AdvancedHorse) ((CraftLivingEntity) horse).getHandle();
-        player.sendMessage(ChatColor.GRAY + "---------------------------");
+        player.sendMessage(ChatColor.GRAY + "-----------------------------");
         if (horse.getCustomName() == null || horse.getCustomName().isEmpty()) {
             player.sendMessage(ChatColor.YELLOW + "Name" + ChatColor.GRAY + ": " + ChatColor.AQUA + "None");
         } else {
@@ -78,6 +78,8 @@ public class AdvancedHorsesListener implements Listener {
         player.sendMessage(ChatColor.YELLOW + "Health" + ChatColor.GRAY + ": " + ChatColor.AQUA + Math.round(horse.getHealth()) + ChatColor.GRAY + "/" + ChatColor.AQUA + Math.round(horse.getMaxHealth()));
         player.sendMessage(ChatColor.YELLOW + "Hunger" + ChatColor.GRAY + ": " + ChatColor.AQUA + advancedHorse1.getHungerLevel() + ChatColor.GRAY + "/" + ChatColor.AQUA + "500");
         player.sendMessage(ChatColor.YELLOW + "Hydration" + ChatColor.GRAY + ": " + ChatColor.AQUA + advancedHorse1.getHydrationLevel() + ChatColor.GRAY + "/" + ChatColor.AQUA + "500");
+        player.sendMessage(ChatColor.YELLOW + "Temper" + ChatColor.GRAY + ": " + ChatColor.AQUA + advancedHorse1.getDomestication() + ChatColor.GRAY + "/" + ChatColor.AQUA + "100");
+        player.sendMessage(ChatColor.GRAY + "-----------------------------");
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -289,7 +291,7 @@ public class AdvancedHorsesListener implements Listener {
         event.setCancelled(true);
         AdvancedHorse advancedHorse1 = (AdvancedHorse) ((CraftLivingEntity) horse).getHandle();
         if (advancedHorse1.getHungerLevel() < 500) {
-            player.sendMessage(ChatColor.GREEN + "You have sated this Horses thirst!");
+            player.sendMessage(ChatColor.GREEN + "You have satisfied this Horses hunger!");
             advancedHorse1.feedHorse();
             if (player.getGameMode() != GameMode.CREATIVE) {
                 if (player.getItemInHand().getAmount() > 1) {
