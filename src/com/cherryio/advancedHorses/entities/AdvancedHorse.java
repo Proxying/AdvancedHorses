@@ -1,7 +1,9 @@
 package com.cherryio.advancedHorses.entities;
 
 import com.cherryio.advancedHorses.utils.Config;
+import com.cherryio.advancedHorses.utils.Utils;
 import net.minecraft.server.v1_9_R1.*;
+import org.bukkit.Effect;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 
 import java.util.Random;
@@ -132,41 +134,52 @@ public class AdvancedHorse extends EntityHorse {
         if(!this.world.isClientSide) {
             if (this.isTamed()) {
                 if (this.random.nextInt(2000) == 0) {
-                    if (this.isVehicle()) {
-                        this.setHydrationLevel(this.getHydrationLevel() - 2);
-                        if (this.getHydrationLevel() <= 50) {
-                            this.setSpeed(this.getHorseSpeed() / 2);
-                            this.setJump(this.getJumpStrength() / 2);
+                    if (!Utils.getNearbyWaterSource(this.getBukkitEntity().getLocation(), 8)) {
+                        if (this.isVehicle()) {
+                            this.setHydrationLevel(this.getHydrationLevel() - 2);
+                            if (this.getHydrationLevel() <= 50) {
+                                this.setSpeed(this.getHorseSpeed() / 2);
+                                this.setJump(this.getJumpStrength() / 2);
+                            }
+                        } else {
+                            this.setHydrationLevel(this.getHydrationLevel() - 1);
+                            if (this.getHydrationLevel() <= 50) {
+                                this.setSpeed(this.getHorseSpeed() / 2);
+                                this.setJump(this.getJumpStrength() / 2);
+                            }
                         }
                     } else {
-                        this.setHydrationLevel(this.getHydrationLevel() - 1);
-                        if (this.getHydrationLevel() <= 50) {
-                            this.setSpeed(this.getHorseSpeed() / 2);
-                            this.setJump(this.getJumpStrength() / 2);
-                        }
+                        this.waterHorse();
                     }
                 }
                 if (this.random.nextInt(1500) == 0) {
-                    if (this.isVehicle()) {
-                        this.setHungerLevel(this.getHydrationLevel() - 2);
-                        if (this.getHungerLevel() <= 0) {
-                            if (new Config<Boolean>("settings.horseDeathNoFood").getValue()) {
-                                this.die();
+                    if (!Utils.getNearbyFoodSource(this.getBukkitEntity().getLocation(), 8)) {
+                        if (this.isVehicle()) {
+                            this.setHungerLevel(this.getHydrationLevel() - 2);
+                            if (this.getHungerLevel() <= 0) {
+                                if (new Config<Boolean>("settings.horseDeathNoFood").getValue()) {
+                                    this.die();
+                                }
                             }
-                        }
-                    } else {
-                        this.setHungerLevel(this.getHydrationLevel() - 1);
-                        if (this.getHungerLevel() <= 0) {
-                            if (new Config<Boolean>("settings.horseDeathNoFood").getValue()) {
-                                this.die();
+                        } else {
+                            this.setHungerLevel(this.getHydrationLevel() - 1);
+                            if (this.getHungerLevel() <= 0) {
+                                if (new Config<Boolean>("settings.horseDeathNoFood").getValue()) {
+                                    this.die();
+                                }
                             }
                         }
                     }
+                } else {
+                    this.feedHorse();
                 }
                 if (this.getDomestication() < 100) {
                     if (this.isVehicle()) {
                         if (this.random.nextInt(1000) == 0) {
-                            this.getBukkitEntity().setPassenger(null);
+                            if (this.random.nextInt(100) > this.getDomestication()) {
+                                this.getBukkitEntity().setPassenger(null);
+                                this.getBukkitEntity().getWorld().playEffect(this.getBukkitEntity().getLocation(), Effect.SMOKE, 1);
+                            }
                             this.setDomestication(this.getDomestication() + 2);
                         }
                     }
