@@ -133,7 +133,7 @@ public class AdvancedHorse extends EntityHorse {
         super.n();
         if(!this.world.isClientSide) {
             if (this.isTamed()) {
-                if (this.random.nextInt(2000) == 0) {
+                if (this.random.nextInt(1000) == 0) {
                     if (!Utils.getNearbyWaterSource(this.getBukkitEntity().getLocation(), 8)) {
                         if (this.isVehicle()) {
                             this.setHydrationLevel(this.getHydrationLevel() - 2);
@@ -152,7 +152,7 @@ public class AdvancedHorse extends EntityHorse {
                         this.waterHorse();
                     }
                 }
-                if (this.random.nextInt(1500) == 0) {
+                if (this.random.nextInt(1400) == 0) {
                     if (!Utils.getNearbyFoodSource(this.getBukkitEntity().getLocation(), 8)) {
                         if (this.isVehicle()) {
                             this.setHungerLevel(this.getHydrationLevel() - 2);
@@ -169,9 +169,9 @@ public class AdvancedHorse extends EntityHorse {
                                 }
                             }
                         }
+                    } else {
+                        this.feedHorse();
                     }
-                } else {
-                    this.feedHorse();
                 }
                 if (this.getDomestication() < 100) {
                     if (this.isVehicle()) {
