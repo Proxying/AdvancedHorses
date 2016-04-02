@@ -4,6 +4,7 @@ import com.cherryio.advancedHorses.utils.Config;
 import com.cherryio.advancedHorses.utils.Utils;
 import net.minecraft.server.v1_9_R1.*;
 import org.bukkit.Effect;
+import org.bukkit.entity.Horse;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 
 import java.util.Random;
@@ -37,6 +38,47 @@ public class AdvancedHorse extends EntityHorse {
         this.setHungerLevel(500);
         this.setHydrationLevel(500);
         this.setDomestication(1);
+        Horse horse = (Horse) this.getBukkitEntity();
+        switch (new Random().nextInt(6)) {
+            case 0:
+                horse.setColor(Horse.Color.BLACK);
+                break;
+            case 1:
+                horse.setColor(Horse.Color.BROWN);
+                break;
+            case 2:
+                horse.setColor(Horse.Color.CHESTNUT);
+                break;
+            case 3:
+                horse.setColor(Horse.Color.CREAMY);
+                break;
+            case 4:
+                horse.setColor(Horse.Color.DARK_BROWN);
+                break;
+            case 5:
+                horse.setColor(Horse.Color.GRAY);
+                break;
+            default:
+                horse.setColor(Horse.Color.BLACK);
+                break;
+        }
+        switch (new Random().nextInt(4)) {
+            case 0:
+                horse.setStyle(Horse.Style.BLACK_DOTS);
+                break;
+            case 1:
+                horse.setStyle(Horse.Style.WHITE);
+                break;
+            case 2:
+                horse.setStyle(Horse.Style.WHITE_DOTS);
+                break;
+            case 3:
+                horse.setStyle(Horse.Style.WHITEFIELD);
+                break;
+            default:
+                horse.setStyle(Horse.Style.BLACK_DOTS);
+                break;
+        }
     }
 
     public AdvancedHorse(World world) {

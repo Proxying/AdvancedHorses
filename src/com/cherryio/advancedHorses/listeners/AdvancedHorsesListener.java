@@ -4,10 +4,7 @@ import com.cherryio.advancedHorses.entities.AdvancedHorse;
 import com.cherryio.advancedHorses.utils.Config;
 import net.minecraft.server.v1_9_R1.EnumHorseType;
 import net.minecraft.server.v1_9_R1.GenericAttributes;
-import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.craftbukkit.v1_9_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_9_R1.entity.CraftLivingEntity;
 import org.bukkit.entity.*;
@@ -133,14 +130,14 @@ public class AdvancedHorsesListener implements Listener {
     public void horseMate(CreatureSpawnEvent event) {
         if (event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.BREEDING) return;
         if (event.getEntity().getType() != EntityType.HORSE) return;
-        final Horse babyHorse = (Horse) event.getEntity();
+        Horse babyHorse = (Horse) event.getEntity();
         boolean found = false;
         boolean found2 = false;
         Horse parent1 = babyHorse;
         Horse parent2 = babyHorse;
         boolean shouldSpawn = true;
         for (int i = 0; i < 2; i++) {
-            List<Entity> entities = babyHorse.getNearbyEntities(i, 0, i);
+            List<Entity> entities = babyHorse.getNearbyEntities(i + 0.5, 0, i + 0.5);
             for (Entity e : entities) {
                 if (e.getType().equals(EntityType.HORSE)) {
                     if (found) {
@@ -157,7 +154,6 @@ public class AdvancedHorsesListener implements Listener {
             }
             if (found2) break;
         }
-        event.getEntity().remove();
         if (found && found2) {
             AdvancedHorse advancedHorse1 = (AdvancedHorse) ((CraftLivingEntity) parent1).getHandle();
             AdvancedHorse advancedHorse2 = (AdvancedHorse) ((CraftLivingEntity) parent2).getHandle();
@@ -165,11 +161,11 @@ public class AdvancedHorsesListener implements Listener {
                 shouldSpawn = false;
             }
             if (advancedHorse1.getHorseGender() == 1) {
-                if (advancedHorse1.getHorseGender() == 1) {
+                if (advancedHorse2.getHorseGender() == 1) {
                     shouldSpawn = false;
                 }
             } else if (advancedHorse1.getHorseGender() == 0) {
-                if (advancedHorse1.getHorseGender() == 0) {
+                if (advancedHorse2.getHorseGender() == 0) {
                     shouldSpawn = false;
                 }
             }
@@ -191,6 +187,7 @@ public class AdvancedHorsesListener implements Listener {
                 horse.setBaby();
             }
         }
+        event.getEntity().remove();
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
