@@ -2,12 +2,15 @@ package com.cherryio.advancedHorses.listeners;
 
 import com.cherryio.advancedHorses.entities.AdvancedHorse;
 import com.cherryio.advancedHorses.utils.Config;
+import com.cherryio.advancedHorses.utils.Utils;
 import net.minecraft.server.v1_9_R1.EnumHorseType;
 import net.minecraft.server.v1_9_R1.GenericAttributes;
 import org.bukkit.*;
 import org.bukkit.craftbukkit.v1_9_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_9_R1.entity.CraftLivingEntity;
-import org.bukkit.entity.*;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Horse;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -15,24 +18,15 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.List;
 import java.util.Random;
 
 /**
  * Created by Kieran on 24-Mar-16 for CherryIO.
  */
 public class AdvancedHorsesListener implements Listener {
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void playerMoveOnHorse(PlayerMoveEvent event) {
-        if (event.getPlayer().getVehicle() == null || event.getPlayer().getVehicle().getType() != EntityType.HORSE) return;
-        Player player = event.getPlayer();
-        Horse horse = (Horse) player.getVehicle();
-    }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void viewStats(EntityDamageByEntityEvent event) {
@@ -43,7 +37,15 @@ public class AdvancedHorsesListener implements Listener {
         Horse horse = (Horse) event.getEntity();
         event.setDamage(0);
         event.setCancelled(true);
-        AdvancedHorse advancedHorse1 = (AdvancedHorse) ((CraftLivingEntity) horse).getHandle();
+        AdvancedHorse advancedHorse1;
+        try {
+            advancedHorse1 = (AdvancedHorse) ((CraftLivingEntity) horse).getHandle();
+        } catch (ClassCastException e) {
+            e.printStackTrace();
+            event.getEntity().remove();
+            Utils.spawnHorse(event.getDamager().getLocation());
+            return;
+        }
         player.sendMessage(ChatColor.GRAY + "-----------------------------");
         if (horse.getCustomName() == null || horse.getCustomName().isEmpty()) {
             player.sendMessage(ChatColor.YELLOW + "Name" + ChatColor.GRAY + ": " + ChatColor.AQUA + "None");
@@ -62,12 +64,12 @@ public class AdvancedHorsesListener implements Listener {
         }
         double jump = horse.getJumpStrength();
         double blockJumpHeight = -0.1817584952 * Math.pow(jump, 3) + 3.689713992 * Math.pow(jump, 2) + 2.128599134 * jump - 0.343930367;
-        blockJumpHeight = (blockJumpHeight*100);
+        blockJumpHeight = (blockJumpHeight * 100);
         blockJumpHeight = Math.round(blockJumpHeight);
         blockJumpHeight /= 100;
         double speed = advancedHorse1.getAttributeInstance(GenericAttributes.MOVEMENT_SPEED).getValue();
         double blockPerSecondSpeed = 4.3 * speed * 10;
-        blockPerSecondSpeed = (blockPerSecondSpeed*100);
+        blockPerSecondSpeed = (blockPerSecondSpeed * 100);
         blockPerSecondSpeed = Math.round(blockPerSecondSpeed);
         blockPerSecondSpeed /= 100;
         player.sendMessage(ChatColor.YELLOW + "Jump Height (Blocks)" + ChatColor.GRAY + ": " + ChatColor.AQUA + blockJumpHeight);
@@ -110,84 +112,10 @@ public class AdvancedHorsesListener implements Listener {
         if (event.getEntity().getType() != EntityType.HORSE) return;
         if (event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.CUSTOM) return;
         if (event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.BREEDING) return;
-        final Entity horse = event.getEntity();
         if (!event.getEntity().isDead()) {
             event.getEntity().remove();
         }
-        int gender;
-        if (new Random().nextInt(99) < new Config<Integer>("settings.maleHorseOnBirthChance").getValue()) {
-            gender = 1;
-        } else {
-            gender = 0;
-        }
-        AdvancedHorse advancedHorse = new AdvancedHorse(((CraftWorld) event.getEntity().getWorld()).getHandle(), gender, false);
-        advancedHorse.setLocation(horse.getLocation().getX(), horse.getLocation().getY(), horse.getLocation().getZ(), 0 ,0);
-        ((CraftWorld) event.getEntity().getWorld()).getHandle().addEntity(advancedHorse, CreatureSpawnEvent.SpawnReason.CUSTOM);
-        advancedHorse.setLocation(horse.getLocation().getX(), horse.getLocation().getY(), horse.getLocation().getZ(), 0 ,0);
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void horseMate(CreatureSpawnEvent event) {
-        if (event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.BREEDING) return;
-        if (event.getEntity().getType() != EntityType.HORSE) return;
-        Horse babyHorse = (Horse) event.getEntity();
-        boolean found = false;
-        boolean found2 = false;
-        Horse parent1 = babyHorse;
-        Horse parent2 = babyHorse;
-        boolean shouldSpawn = true;
-        for (int i = 0; i < 2; i++) {
-            List<Entity> entities = babyHorse.getNearbyEntities(i + 0.5, 0, i + 0.5);
-            for (Entity e : entities) {
-                if (e.getType().equals(EntityType.HORSE)) {
-                    if (found) {
-                        if (!parent1.equals(e)) {
-                            found2 = true;
-                            parent2 = (Horse) e;
-                        }
-                    } else {
-                        found = true;
-                        parent1 = (Horse) e;
-                    }
-                    break;
-                }
-            }
-            if (found2) break;
-        }
-        if (found && found2) {
-            AdvancedHorse advancedHorse1 = (AdvancedHorse) ((CraftLivingEntity) parent1).getHandle();
-            AdvancedHorse advancedHorse2 = (AdvancedHorse) ((CraftLivingEntity) parent2).getHandle();
-            if (advancedHorse1.isNeutered() || advancedHorse2.isNeutered() ) {
-                shouldSpawn = false;
-            }
-            if (advancedHorse1.getHorseGender() == 1) {
-                if (advancedHorse2.getHorseGender() == 1) {
-                    shouldSpawn = false;
-                }
-            } else if (advancedHorse1.getHorseGender() == 0) {
-                if (advancedHorse2.getHorseGender() == 0) {
-                    shouldSpawn = false;
-                }
-            }
-            if (shouldSpawn) {
-                int gender;
-                if (new Random().nextInt(99) < new Config<Integer>("settings.maleHorseOnBirthChance").getValue()) {
-                    gender = 1;
-                } else {
-                    gender = 0;
-                }
-                AdvancedHorse advancedHorse = new AdvancedHorse(((CraftWorld) event.getEntity().getWorld()).getHandle(), gender, false);
-                advancedHorse.setLocation(babyHorse.getLocation().getX(), babyHorse.getLocation().getY(), babyHorse.getLocation().getZ(), 0 ,0);
-                ((CraftWorld) event.getEntity().getWorld()).getHandle().addEntity(advancedHorse, CreatureSpawnEvent.SpawnReason.CUSTOM);
-                advancedHorse.setLocation(babyHorse.getLocation().getX(), babyHorse.getLocation().getY(), babyHorse.getLocation().getZ(), 0 ,0);
-                advancedHorse.setMaxHP((advancedHorse1.getMaxHealth() + advancedHorse2.getMaxHealth()) / 1.9);
-                advancedHorse.setJump((advancedHorse1.getJumpStrength() + advancedHorse2.getJumpStrength()) / 1.9);
-                advancedHorse.setSpeed((advancedHorse1.getHorseSpeed() + advancedHorse2.getHorseSpeed()) / 1.9);
-                org.bukkit.entity.Horse horse = (org.bukkit.entity.Horse) advancedHorse.getBukkitEntity();
-                horse.setBaby();
-            }
-        }
-        event.getEntity().remove();
+        Utils.spawnHorse(event.getLocation());
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -197,7 +125,15 @@ public class AdvancedHorsesListener implements Listener {
         Player player = (Player) event.getDamager();
         if (player.getItemInHand() == null || player.getItemInHand().getType() != Material.SHEARS) return;
         Horse horse = (Horse) event.getEntity();
-        AdvancedHorse advancedHorse1 = (AdvancedHorse) ((CraftLivingEntity) horse).getHandle();
+        AdvancedHorse advancedHorse1;
+        try {
+            advancedHorse1 = (AdvancedHorse) ((CraftLivingEntity) horse).getHandle();
+        } catch (ClassCastException e) {
+            e.printStackTrace();
+            event.getEntity().remove();
+            Utils.spawnHorse(event.getDamager().getLocation());
+            return;
+        }
         event.setDamage(0);
         event.setCancelled(true);
         if (advancedHorse1.getHorseGender() == 1) {
@@ -258,7 +194,15 @@ public class AdvancedHorsesListener implements Listener {
         }
         event.setDamage(0);
         event.setCancelled(true);
-        AdvancedHorse advancedHorse1 = (AdvancedHorse) ((CraftLivingEntity) horse).getHandle();
+        AdvancedHorse advancedHorse1;
+        try {
+            advancedHorse1 = (AdvancedHorse) ((CraftLivingEntity) horse).getHandle();
+        } catch (ClassCastException e) {
+            e.printStackTrace();
+            event.getEntity().remove();
+            Utils.spawnHorse(event.getDamager().getLocation());
+            return;
+        }
         if (advancedHorse1.getHydrationLevel() < 500) {
             player.sendMessage(ChatColor.GREEN + "You have sated this Horses thirst!");
             advancedHorse1.waterHorse();
@@ -286,7 +230,15 @@ public class AdvancedHorsesListener implements Listener {
         }
         event.setDamage(0);
         event.setCancelled(true);
-        AdvancedHorse advancedHorse1 = (AdvancedHorse) ((CraftLivingEntity) horse).getHandle();
+        AdvancedHorse advancedHorse1;
+        try {
+            advancedHorse1 = (AdvancedHorse) ((CraftLivingEntity) horse).getHandle();
+        } catch (ClassCastException e) {
+            e.printStackTrace();
+            event.getEntity().remove();
+            Utils.spawnHorse(event.getDamager().getLocation());
+            return;
+        }
         if (advancedHorse1.getHungerLevel() < 500) {
             player.sendMessage(ChatColor.GREEN + "You have satisfied this Horses hunger!");
             advancedHorse1.feedHorse();

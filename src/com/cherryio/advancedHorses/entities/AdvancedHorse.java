@@ -372,6 +372,94 @@ public class AdvancedHorse extends EntityHorse {
         this.dK();
     }
 
+    @Override
+    public boolean mate(EntityAnimal entityanimal) {
+        if(entityanimal == this) {
+            return false;
+        } else if(entityanimal.getClass() != this.getClass()) {
+            return false;
+        } else {
+            AdvancedHorse advancedHorse = (AdvancedHorse) entityanimal;
+            if(this.dP() && advancedHorse.dP()) {
+                if (this.getHorseGender() == advancedHorse.getHorseGender()) {
+                    return false;
+                }
+                if (this.isNeutered() || advancedHorse.isNeutered()) {
+                    return false;
+                }
+                EnumHorseType enumhorsetype = this.getType();
+                EnumHorseType enumhorsetype1 = advancedHorse.getType();
+                return enumhorsetype == enumhorsetype1 || enumhorsetype == EnumHorseType.HORSE && enumhorsetype1 == EnumHorseType.DONKEY || enumhorsetype == EnumHorseType.DONKEY && enumhorsetype1 == EnumHorseType.HORSE;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    @Override
+    public EntityAgeable createChild(EntityAgeable entityageable) {
+        AdvancedHorse mateHorse = (AdvancedHorse) entityageable;
+        AdvancedHorse baby = new AdvancedHorse(this.world);
+        EnumHorseType enumhorsetype = this.getType();
+        EnumHorseType enumhorsetype1 = mateHorse.getType();
+        EnumHorseType enumhorsetype2 = EnumHorseType.HORSE;
+        if(enumhorsetype == enumhorsetype1) {
+            enumhorsetype2 = enumhorsetype;
+        } else if(enumhorsetype == EnumHorseType.HORSE && enumhorsetype1 == EnumHorseType.DONKEY || enumhorsetype == EnumHorseType.DONKEY && enumhorsetype1 == EnumHorseType.HORSE) {
+            enumhorsetype2 = EnumHorseType.MULE;
+        }
+
+        if(enumhorsetype2 == EnumHorseType.HORSE) {
+            int i = this.random.nextInt(9);
+            int j;
+            if(i < 4) {
+                j = this.getVariant() & 255;
+            } else if(i < 8) {
+                j = mateHorse.getVariant() & 255;
+            } else {
+                j = this.random.nextInt(7);
+            }
+
+            int k = this.random.nextInt(5);
+            if(k < 2) {
+                j |= this.getVariant() & '\uff00';
+            } else if(k < 4) {
+                j |= mateHorse.getVariant() & '\uff00';
+            } else {
+                j |= this.random.nextInt(5) << 8 & '\uff00';
+            }
+
+            baby.setVariant(j);
+        }
+
+        baby.setType(enumhorsetype2);
+        baby.setHorseGender(this.random.nextInt(1));
+        baby.setNeutered(false);
+        double d0 = this.getAttributeInstance(GenericAttributes.maxHealth).b() + entityageable.getAttributeInstance(GenericAttributes.maxHealth).b() + (double)this.dR();
+        baby.getAttributeInstance(GenericAttributes.maxHealth).setValue(d0 / 3.0D);
+        double d1 = this.getAttributeInstance(attributeJumpStrength).b() + entityageable.getAttributeInstance(attributeJumpStrength).b() + this.dS();
+        baby.getAttributeInstance(attributeJumpStrength).setValue(d1 / 3.0D);
+        double d2 = this.getAttributeInstance(GenericAttributes.MOVEMENT_SPEED).b() + entityageable.getAttributeInstance(GenericAttributes.MOVEMENT_SPEED).b() + this.dT();
+        baby.getAttributeInstance(GenericAttributes.MOVEMENT_SPEED).setValue(d2 / 3.0D);
+        return baby;
+    }
+
+    private boolean dP() {
+        return !this.isVehicle() && !this.isPassenger() && this.isTamed() && this.db() && this.getType().i() && this.getHealth() >= this.getMaxHealth() && this.isInLove();
+    }
+
+    private double dS() {
+        return 0.4000000059604645D + this.random.nextDouble() * 0.2D + this.random.nextDouble() * 0.2D + this.random.nextDouble() * 0.2D;
+    }
+
+    private double dT() {
+        return (0.44999998807907104D + this.random.nextDouble() * 0.3D + this.random.nextDouble() * 0.3D + this.random.nextDouble() * 0.3D) * 0.25D;
+    }
+
+    private float dR() {
+        return 15.0F + (float)this.random.nextInt(8) + (float)this.random.nextInt(9);
+    }
+
     private void dK() {
         if(!this.world.isClientSide) {
             this.t(this.inventoryChest.getItem(0) != null);
@@ -379,7 +467,6 @@ public class AdvancedHorse extends EntityHorse {
                 this.f(this.inventoryChest.getItem(1));
             }
         }
-
     }
 
     public void feedHorse() {
