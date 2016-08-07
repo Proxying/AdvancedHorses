@@ -168,12 +168,12 @@ public class AdvancedHorse extends EntityHorse {
 
     @Override
     public void n() {
-        if(this.random.nextInt(200) == 0) {
+        if (this.random.nextInt(200) == 0) {
             this.bv = 1;
         }
 
         super.n();
-        if(!this.world.isClientSide) {
+        if (!this.world.isClientSide) {
             if (this.isTamed()) {
                 if (this.random.nextInt(1000) == 0) {
                     if (!Utils.getNearbyWaterSource(this.getBukkitEntity().getLocation(), 8)) {
@@ -228,27 +228,27 @@ public class AdvancedHorse extends EntityHorse {
                 }
             }
 
-            if(this.random.nextInt(900) == 0 && this.deathTicks == 0) {
+            if (this.random.nextInt(900) == 0 && this.deathTicks == 0) {
                 this.heal(1.0F, EntityRegainHealthEvent.RegainReason.REGEN);
             }
 
-            if(!this.dm() && !this.isVehicle() && this.random.nextInt(300) == 0 && this.world.getType(new BlockPosition(MathHelper.floor(this.locX), MathHelper.floor(this.locY) - 1, MathHelper.floor(this.locZ))).getBlock() == Blocks.GRASS) {
+            if (!this.dm() && !this.isVehicle() && this.random.nextInt(300) == 0 && this.world.getType(new BlockPosition(MathHelper.floor(this.locX), MathHelper.floor(this.locY) - 1, MathHelper.floor(this.locZ))).getBlock() == Blocks.GRASS) {
                 this.u(true);
             }
 
-            if(this.dm() && ++this.bO > 50) {
+            if (this.dm() && ++this.bO > 50) {
                 this.bO = 0;
                 this.u(false);
             }
 
-            if(this.do_() && !this.db() && !this.dm()) {
+            if (this.do_() && !this.db() && !this.dm()) {
                 EntityHorse entityhorse = this.a(this, 16.0D);
-                if(entityhorse != null && this.h(entityhorse) > 4.0D) {
+                if (entityhorse != null && this.h(entityhorse) > 4.0D) {
                     this.navigation.a(entityhorse);
                 }
             }
 
-            if(this.dG() && this.bV++ >= 18000) {
+            if (this.dG() && this.bV++ >= 18000) {
                 this.die();
             }
         }
@@ -272,17 +272,17 @@ public class AdvancedHorse extends EntityHorse {
         nbttagcompound.setInt("HungerValue", this.getHungerLevel());
         nbttagcompound.setInt("HydrationValue", this.getHydrationLevel());
         nbttagcompound.setInt("DomesticationValue", this.getDomestication());
-        if(this.getOwnerUUID() != null) {
+        if (this.getOwnerUUID() != null) {
             nbttagcompound.setString("OwnerUUID", this.getOwnerUUID().toString());
         }
 
         nbttagcompound.setInt("Bukkit.MaxDomestication", this.maxDomestication);
-        if(this.hasChest()) {
+        if (this.hasChest()) {
             NBTTagList nbttaglist = new NBTTagList();
 
-            for(int i = 2; i < this.inventoryChest.getSize(); ++i) {
+            for (int i = 2; i < this.inventoryChest.getSize(); ++i) {
                 ItemStack itemstack = this.inventoryChest.getItem(i);
-                if(itemstack != null) {
+                if (itemstack != null) {
                     NBTTagCompound nbttagcompound1 = new NBTTagCompound();
                     nbttagcompound1.setByte("Slot", (byte)i);
                     itemstack.save(nbttagcompound1);
@@ -293,11 +293,11 @@ public class AdvancedHorse extends EntityHorse {
             nbttagcompound.set("Items", nbttaglist);
         }
 
-        if(this.inventoryChest.getItem(1) != null) {
+        if (this.inventoryChest.getItem(1) != null) {
             nbttagcompound.set("ArmorItem", this.inventoryChest.getItem(1).save(new NBTTagCompound()));
         }
 
-        if(this.inventoryChest.getItem(0) != null) {
+        if (this.inventoryChest.getItem(0) != null) {
             nbttagcompound.set("SaddleItem", this.inventoryChest.getItem(0).save(new NBTTagCompound()));
         }
 
@@ -374,13 +374,13 @@ public class AdvancedHorse extends EntityHorse {
 
     @Override
     public boolean mate(EntityAnimal entityanimal) {
-        if(entityanimal == this) {
+        if (entityanimal == this) {
             return false;
-        } else if(entityanimal.getClass() != this.getClass()) {
+        } else if (entityanimal.getClass() != this.getClass()) {
             return false;
         } else {
             AdvancedHorse advancedHorse = (AdvancedHorse) entityanimal;
-            if(this.dP() && advancedHorse.dP()) {
+            if (this.dP() && advancedHorse.dP()) {
                 if (this.getHorseGender() == advancedHorse.getHorseGender()) {
                     return false;
                 }
@@ -403,27 +403,27 @@ public class AdvancedHorse extends EntityHorse {
         EnumHorseType enumhorsetype = this.getType();
         EnumHorseType enumhorsetype1 = mateHorse.getType();
         EnumHorseType enumhorsetype2 = EnumHorseType.HORSE;
-        if(enumhorsetype == enumhorsetype1) {
+        if (enumhorsetype == enumhorsetype1) {
             enumhorsetype2 = enumhorsetype;
-        } else if(enumhorsetype == EnumHorseType.HORSE && enumhorsetype1 == EnumHorseType.DONKEY || enumhorsetype == EnumHorseType.DONKEY && enumhorsetype1 == EnumHorseType.HORSE) {
+        } else if (enumhorsetype == EnumHorseType.HORSE && enumhorsetype1 == EnumHorseType.DONKEY || enumhorsetype == EnumHorseType.DONKEY && enumhorsetype1 == EnumHorseType.HORSE) {
             enumhorsetype2 = EnumHorseType.MULE;
         }
 
-        if(enumhorsetype2 == EnumHorseType.HORSE) {
+        if (enumhorsetype2 == EnumHorseType.HORSE) {
             int i = this.random.nextInt(9);
             int j;
-            if(i < 4) {
+            if (i < 4) {
                 j = this.getVariant() & 255;
-            } else if(i < 8) {
+            } else if (i < 8) {
                 j = mateHorse.getVariant() & 255;
             } else {
                 j = this.random.nextInt(7);
             }
 
             int k = this.random.nextInt(5);
-            if(k < 2) {
+            if (k < 2) {
                 j |= this.getVariant() & '\uff00';
-            } else if(k < 4) {
+            } else if (k < 4) {
                 j |= mateHorse.getVariant() & '\uff00';
             } else {
                 j |= this.random.nextInt(5) << 8 & '\uff00';
@@ -433,7 +433,13 @@ public class AdvancedHorse extends EntityHorse {
         }
 
         baby.setType(enumhorsetype2);
-        baby.setHorseGender(this.random.nextInt(1));
+        int gender;
+        if (new Random().nextInt(99) < new Config<Integer>("settings.maleHorseOnBirthChance").getValue()) {
+            gender = 1;
+        } else {
+            gender = 0;
+        }
+        baby.setHorseGender(gender);
         baby.setNeutered(false);
         double d0 = this.getAttributeInstance(GenericAttributes.maxHealth).b() + entityageable.getAttributeInstance(GenericAttributes.maxHealth).b() + (double)this.dR();
         baby.getAttributeInstance(GenericAttributes.maxHealth).setValue(d0 / 3.0D);
@@ -457,14 +463,14 @@ public class AdvancedHorse extends EntityHorse {
     }
 
     private float dR() {
-        return 15.0F + (float)this.random.nextInt(8) + (float)this.random.nextInt(9);
+        return 15.0F + (float) this.random.nextInt(8) + (float) this.random.nextInt(9);
     }
 
     private void dK() {
-        if(!this.world.isClientSide) {
-            this.t(this.inventoryChest.getItem(0) != null);
-            if(this.getType().j()) {
-                this.f(this.inventoryChest.getItem(1));
+        if (!this.world.isClientSide) {
+            this.t (this.inventoryChest.getItem(0) != null);
+            if (this.getType().j()) {
+                this.f (this.inventoryChest.getItem(1));
             }
         }
     }
